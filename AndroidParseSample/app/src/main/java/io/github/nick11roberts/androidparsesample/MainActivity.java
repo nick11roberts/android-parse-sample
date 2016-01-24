@@ -10,15 +10,19 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.EditText;
 
+import com.parse.GetCallback;
 import com.parse.Parse;
 import com.parse.ParseACL;
+import com.parse.ParseException;
 import com.parse.ParseObject;
+import com.parse.ParseQuery;
 import com.parse.ParseUser;
 
 public class MainActivity extends AppCompatActivity {
 
     private EditText parseEditText;
-    private String parseTextData;
+    private String parseTextInputData;
+    private String latestParseObjectData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -39,18 +43,34 @@ public class MainActivity extends AppCompatActivity {
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
+
             @Override
             public void onClick(View view) {
 
-                parseTextData = parseEditText.getText().toString();
+                final View innerClassAccessView = view;
+
+                parseTextInputData = parseEditText.getText().toString();
 
                 // Submit the data to Parse
                 ParseObject testObject = new ParseObject("TestObject");
-                testObject.put("data", parseTextData);
+                testObject.put("data", parseTextInputData);
                 testObject.saveInBackground();
 
-                Snackbar.make(view, "Added item to Parse.", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                // Get latest Parse object and display it
+                ParseQuery<ParseObject> query = ParseQuery.getQuery("TestObject");
+                query.orderByDescending("createdAt");
+                query.getFirstInBackground(new GetCallback<ParseObject>() {
+                    public void done(ParseObject object, ParseException e) {
+                        if (e == null) {
+                            // object will be your game score
+                            latestParseObjectData = object.get("data").toString();
+                            Snackbar.make(innerClassAccessView, latestParseObjectData, Snackbar.LENGTH_LONG)
+                                    .setAction("Action", null).show();
+                        } else {
+                            // something went wrong
+                        }
+                    }
+                });
             }
         });
     }
