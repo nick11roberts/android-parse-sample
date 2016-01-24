@@ -8,19 +8,48 @@ import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.EditText;
+
+import com.parse.Parse;
+import com.parse.ParseACL;
+import com.parse.ParseObject;
+import com.parse.ParseUser;
 
 public class MainActivity extends AppCompatActivity {
+
+    private EditText parseEditText;
+    private String parseTextData;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        // [Optional] Power your app with Local Datastore. For more info, go to
+        // https://parse.com/docs/android/guide#local-datastore
+        Parse.enableLocalDatastore(this);
+        Parse.initialize(this);
+        ParseUser.enableAutomaticUser();
+        ParseACL defaultACL = new ParseACL();
+        // Optionally enable public read access.
+        // defaultACL.setPublicReadAccess﴾true﴿;.
+        ParseACL.setDefaultACL(defaultACL, true);
+
+        parseEditText = (EditText)findViewById(R.id.parseDataInputEditText);
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
+
+                parseTextData = parseEditText.getText().toString();
+
+                // Submit the data to Parse
+                ParseObject testObject = new ParseObject("TestObject");
+                testObject.put("data", parseTextData);
+                testObject.saveInBackground();
+
+                Snackbar.make(view, "Added item to Parse.", Snackbar.LENGTH_LONG)
                         .setAction("Action", null).show();
             }
         });
